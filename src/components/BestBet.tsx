@@ -3,7 +3,7 @@ import { TrendingUp } from "lucide-react";
 
 export const BestBet = () => {
   return (
-    <Card className="card-gradient border-primary/20">
+    <Card className="card-gradient border-primary/20 transition-all duration-300 hover:border-primary/40">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />

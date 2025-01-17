@@ -44,6 +44,20 @@
 .card-gradient {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(30, 174, 219, 0.1) 100%);
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+/* Enhanced hover effects for cards */
+.card-gradient:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Touch device hover alternative */
+@media (hover: none) {
+  .card-gradient:active {
+    transform: scale(0.98);
+  }
 }
 
 .sparkline {
@@ -52,8 +66,22 @@
   stroke-width: 2;
 }
 
+/* Enhanced table row hover effects */
 .table-row-hover {
-  @apply hover:bg-muted/50 transition-colors duration-200;
+  @apply transition-all duration-200;
+}
+
+.table-row-hover:hover {
+  @apply bg-muted/50;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+  transform: translateX(4px);
+}
+
+/* Touch device table row effects */
+@media (hover: none) {
+  .table-row-hover:active {
+    @apply bg-muted/70;
+  }
 }
 
 .fade-in {
@@ -68,5 +96,27 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Button hover and active states */
+.button-glow {
+  @apply transition-all duration-300;
+}
+
+.button-glow:hover {
+  box-shadow: 0 0 15px hsl(var(--primary) / 0.5);
+  transform: translateY(-1px);
+}
+
+.button-glow:active {
+  transform: scale(0.98);
+}
+
+/* Touch device button effects */
+@media (hover: none) {
+  .button-glow:active {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.7);
+    transform: scale(0.96);
   }
 }

@@ -12,7 +12,7 @@ export const Hero = () => {
           Discover profitable cryptocurrency trends with real-time analysis and advanced metrics.
           Make informed decisions with our comprehensive tracking system.
         </p>
-        <Button className="group" size="lg">
+        <Button className="group button-glow" size="lg">
           Explore Markets
           <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
         </Button>

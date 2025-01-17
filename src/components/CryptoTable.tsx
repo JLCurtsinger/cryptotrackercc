@@ -9,7 +9,7 @@ const cryptoData = [
 
 export const CryptoTable = () => {
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
@@ -23,7 +23,7 @@ export const CryptoTable = () => {
         </TableHeader>
         <TableBody>
           {cryptoData.map((crypto) => (
-            <TableRow key={crypto.rank} className="table-row-hover">
+            <TableRow key={crypto.rank} className="table-row-hover cursor-pointer">
               <TableCell className="font-medium">{crypto.rank}</TableCell>
               <TableCell className="flex items-center gap-2">
                 <Bitcoin className="h-5 w-5 text-yellow-500" />
