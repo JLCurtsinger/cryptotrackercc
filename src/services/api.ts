@@ -2,12 +2,6 @@ import { toast } from "sonner";
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 const CACHE_KEY = "crypto_data_cache";
-const API_KEY_STORAGE = "coinmarketcap_api_key";
-
-interface CacheData {
-  timestamp: number;
-  data: any;
-}
 
 export interface CryptoData {
   id: number;
@@ -27,16 +21,13 @@ const formatMarketCap = (marketCap: number): string => {
   return marketCap.toString();
 };
 
-export const getApiKey = () => localStorage.getItem(API_KEY_STORAGE);
-export const setApiKey = (key: string) => localStorage.setItem(API_KEY_STORAGE, key);
-
-const getCachedData = (): CacheData | null => {
+const getCachedData = (): { timestamp: number; data: CryptoData[] } | null => {
   const cached = localStorage.getItem(CACHE_KEY);
   return cached ? JSON.parse(cached) : null;
 };
 
-const setCachedData = (data: any) => {
-  const cacheData: CacheData = {
+const setCachedData = (data: CryptoData[]) => {
+  const cacheData = {
     timestamp: Date.now(),
     data,
   };
@@ -44,11 +35,6 @@ const setCachedData = (data: any) => {
 };
 
 export const fetchCryptoData = async (): Promise<CryptoData[]> => {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error("API key not found");
-  }
-
   // Check cache first
   const cached = getCachedData();
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -56,14 +42,7 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
   }
 
   try {
-    const response = await fetch(
-      "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
-      {
-        headers: {
-          "X-CMC_PRO_API_KEY": apiKey,
-        },
-      }
-    );
+    const response = await fetch("/api/fetchCryptoData");
 
     if (!response.ok) {
       throw new Error("Failed to fetch data");
@@ -89,9 +68,3 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
     throw error;
   }
 };
-
-// Initialize API key if not already set
-const defaultApiKey = "7121d92c-0ae2-42ed-84fc-5872450c32d5";
-if (!getApiKey()) {
-  setApiKey(defaultApiKey);
-}
