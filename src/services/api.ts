@@ -1,5 +1,3 @@
-import { toast } from "sonner";
-
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 const CACHE_KEY = "crypto_data_cache";
 const API_KEY_STORAGE = "coinmarketcap_api_key";
@@ -89,3 +87,9 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
     throw error;
   }
 };
+
+// Initialize API key if not already set
+const defaultApiKey = "7121d92c-0ae2-42ed-84fc-5872450c32d5";
+if (!getApiKey()) {
+  setApiKey(defaultApiKey);
+}
