@@ -1,13 +1,24 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Bitcoin, TrendingUp, TrendingDown } from "lucide-react";
-
-const cryptoData = [
-  { rank: 1, name: "Bitcoin", symbol: "BTC", price: 42000, marketCap: "800B", volume: "24B", change: 2.5 },
-  { rank: 2, name: "Ethereum", symbol: "ETH", price: 2800, marketCap: "320B", volume: "15B", change: -1.2 },
-  { rank: 3, name: "BNB", symbol: "BNB", price: 320, marketCap: "50B", volume: "2B", change: 0.8 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { fetchCryptoData, type CryptoData } from "@/services/api";
+import { Skeleton } from "./ui/skeleton";
 
 export const CryptoTable = () => {
+  const { data: cryptoData, isLoading, isError } = useQuery({
+    queryKey: ["crypto"],
+    queryFn: fetchCryptoData,
+    refetchInterval: 10 * 60 * 1000, // Refetch every 10 minutes
+  });
+
+  if (isError) {
+    return (
+      <div className="text-center p-8 text-red-500">
+        Failed to load cryptocurrency data. Please check your API key and try again.
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
       <Table>
@@ -22,32 +33,42 @@ export const CryptoTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {cryptoData.map((crypto) => (
-            <TableRow key={crypto.rank} className="table-row-hover cursor-pointer">
-              <TableCell className="font-medium">{crypto.rank}</TableCell>
-              <TableCell className="flex items-center gap-2">
-                <Bitcoin className="h-5 w-5 text-yellow-500" />
-                <span className="font-medium">{crypto.name}</span>
-                <span className="text-muted-foreground">{crypto.symbol}</span>
-              </TableCell>
-              <TableCell className="text-right">${crypto.price.toLocaleString()}</TableCell>
-              <TableCell className="text-right">${crypto.marketCap}</TableCell>
-              <TableCell className="text-right">${crypto.volume}</TableCell>
-              <TableCell className="text-right flex items-center justify-end gap-1">
-                {crypto.change > 0 ? (
-                  <>
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                    <span className="text-green-500">+{crypto.change}%</span>
-                  </>
-                ) : (
-                  <>
-                    <TrendingDown className="h-4 w-4 text-red-500" />
-                    <span className="text-red-500">{crypto.change}%</span>
-                  </>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell colSpan={6}>
+                  <Skeleton className="h-12 w-full" />
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            cryptoData?.map((crypto) => (
+              <TableRow key={crypto.rank} className="table-row-hover cursor-pointer">
+                <TableCell className="font-medium">{crypto.rank}</TableCell>
+                <TableCell className="flex items-center gap-2">
+                  <Bitcoin className="h-5 w-5 text-yellow-500" />
+                  <span className="font-medium">{crypto.name}</span>
+                  <span className="text-muted-foreground">{crypto.symbol}</span>
+                </TableCell>
+                <TableCell className="text-right">${crypto.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</TableCell>
+                <TableCell className="text-right">${crypto.marketCap}</TableCell>
+                <TableCell className="text-right">${crypto.volume}</TableCell>
+                <TableCell className="text-right flex items-center justify-end gap-1">
+                  {crypto.change > 0 ? (
+                    <>
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                      <span className="text-green-500">+{crypto.change.toFixed(2)}%</span>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      <span className="text-red-500">{crypto.change.toFixed(2)}%</span>
+                    </>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
