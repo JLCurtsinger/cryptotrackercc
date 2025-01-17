@@ -1,12 +1,24 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { About } from "@/components/About";
+import { BestBet } from "@/components/BestBet";
+import { CryptoTable } from "@/components/CryptoTable";
+import { Footer } from "@/components/Footer";
+import { Hero } from "@/components/Hero";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen">
+      <Hero />
+      <main className="container mx-auto px-4 py-12 space-y-12">
+        <section>
+          <h2 className="text-2xl font-semibold mb-6">Top Cryptocurrencies</h2>
+          <CryptoTable />
+        </section>
+        <section className="grid md:grid-cols-2 gap-8">
+          <BestBet />
+          <About />
+        </section>
+      </main>
+      <Footer />
     </div>
   );
 };
