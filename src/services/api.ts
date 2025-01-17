@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 const CACHE_KEY = "crypto_data_cache";
 const API_KEY_STORAGE = "coinmarketcap_api_key";
