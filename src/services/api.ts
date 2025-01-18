@@ -15,6 +15,25 @@ export interface CryptoData {
   logo: string;
 }
 
+export interface CryptoDetailData extends Omit<CryptoData, 'marketCap' | 'volume'> {
+  marketCap: number;
+  volume: number;
+  circulatingSupply: number;
+  maxSupply: number;
+  website?: string;
+  whitepaper?: string;
+  github?: string;
+  twitter?: string;
+  fullyDilutedMarketCap: number;
+  marketCapChange24h: number;
+  volumeMarketCapRatio: number;
+}
+
+export interface ChartDataPoint {
+  timestamp: number;
+  price: number;
+}
+
 const formatMarketCap = (marketCap: number): string => {
   if (marketCap >= 1e12) return `${(marketCap / 1e12).toFixed(2)}T`;
   if (marketCap >= 1e9) return `${(marketCap / 1e9).toFixed(2)}B`;
@@ -85,31 +104,25 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
   }
 };
 
-export interface CryptoDetailData extends CryptoData {
-  circulatingSupply: number;
-  maxSupply: number;
-  website?: string;
-  whitepaper?: string;
-  github?: string;
-  twitter?: string;
-}
-
-export interface ChartDataPoint {
-  timestamp: number;
-  price: number;
-}
-
 export const fetchCryptoDetail = async (symbol: string): Promise<CryptoDetailData> => {
+  console.log("Fetching crypto detail for symbol:", symbol);
   try {
     const response = await fetch(`/api/fetchCryptoDetail?symbol=${symbol}`);
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API Error Response:", errorText);
       throw new Error(`API request failed with status ${response.status}`);
     }
     const data = await response.json();
+    console.log("Received crypto detail data:", data);
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
     return data;
   } catch (error) {
     console.error("Error fetching crypto detail:", error);
-    toast.error("Failed to fetch cryptocurrency details");
     throw error;
   }
 };

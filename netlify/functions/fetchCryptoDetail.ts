@@ -1,6 +1,8 @@
 import { Handler } from "@netlify/functions";
 
 const handler: Handler = async (event) => {
+  console.log("fetchCryptoDetail function called with params:", event.queryStringParameters);
+  
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -17,7 +19,7 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    const symbol = event.queryStringParameters?.symbol;
+    const symbol = event.queryStringParameters?.symbol?.toUpperCase();
     if (!symbol) {
       throw new Error("Symbol parameter is required");
     }
@@ -26,6 +28,8 @@ const handler: Handler = async (event) => {
     if (!apiKey) {
       throw new Error("CoinMarketCap API key is not configured");
     }
+
+    console.log(`Fetching data for symbol: ${symbol}`);
 
     // Fetch both quotes and metadata
     const [quotesResponse, metadataResponse] = await Promise.all([
@@ -43,8 +47,15 @@ const handler: Handler = async (event) => {
       }),
     ]);
 
+    console.log("Quotes response status:", quotesResponse.status);
+    console.log("Metadata response status:", metadataResponse.status);
+
     if (!quotesResponse.ok || !metadataResponse.ok) {
-      throw new Error("Failed to fetch cryptocurrency data");
+      const quotesText = await quotesResponse.text();
+      const metadataText = await metadataResponse.text();
+      console.error("Quotes response:", quotesText);
+      console.error("Metadata response:", metadataText);
+      throw new Error(`Failed to fetch cryptocurrency data: Quotes(${quotesResponse.status}), Metadata(${metadataResponse.status})`);
     }
 
     const [quotesData, metadataData] = await Promise.all([
@@ -52,29 +63,48 @@ const handler: Handler = async (event) => {
       metadataResponse.json(),
     ]);
 
-    const crypto = Object.values(quotesData.data)[0];
-    const metadata = Object.values(metadataData.data)[0];
+    console.log("Successfully parsed API responses");
+
+    if (!quotesData.data || !metadataData.data) {
+      console.error("Invalid API response format:", { quotesData, metadataData });
+      throw new Error("Invalid API response format");
+    }
+
+    const cryptoQuote = Object.values(quotesData.data)[0] as any;
+    const cryptoMetadata = Object.values(metadataData.data)[0] as any;
+
+    if (!cryptoQuote || !cryptoMetadata) {
+      console.error("No data found for symbol:", symbol);
+      throw new Error(`No data found for symbol: ${symbol}`);
+    }
+
+    const responseData = {
+      id: cryptoQuote.id,
+      name: cryptoQuote.name,
+      symbol: cryptoQuote.symbol,
+      price: cryptoQuote.quote.USD.price,
+      marketCap: cryptoQuote.quote.USD.market_cap,
+      volume: cryptoQuote.quote.USD.volume_24h,
+      change: cryptoQuote.quote.USD.percent_change_24h,
+      rank: cryptoQuote.cmc_rank,
+      circulatingSupply: cryptoQuote.circulating_supply,
+      maxSupply: cryptoQuote.max_supply,
+      logo: cryptoMetadata.logo,
+      website: cryptoMetadata.urls?.website?.[0],
+      whitepaper: cryptoMetadata.urls?.technical_doc?.[0],
+      github: cryptoMetadata.urls?.source_code?.[0],
+      twitter: cryptoMetadata.urls?.twitter?.[0],
+      fullyDilutedMarketCap: cryptoQuote.quote.USD.fully_diluted_market_cap,
+      marketCapChange24h: cryptoQuote.quote.USD.market_cap_change_24h,
+      volumeMarketCapRatio: cryptoQuote.quote.USD.volume_24h / cryptoQuote.quote.USD.market_cap,
+    };
+
+    console.log("Sending response for symbol:", symbol);
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        id: crypto.id,
-        name: crypto.name,
-        symbol: crypto.symbol,
-        price: crypto.quote.USD.price,
-        marketCap: crypto.quote.USD.market_cap,
-        volume: crypto.quote.USD.volume_24h,
-        change: crypto.quote.USD.percent_change_24h,
-        rank: crypto.cmc_rank,
-        circulatingSupply: crypto.circulating_supply,
-        maxSupply: crypto.max_supply,
-        logo: metadata.logo,
-        website: metadata.urls?.website?.[0],
-        whitepaper: metadata.urls?.technical_doc?.[0],
-        github: metadata.urls?.source_code?.[0],
-        twitter: metadata.urls?.twitter?.[0],
-      }),
+      body: JSON.stringify(responseData),
     };
   } catch (error) {
     console.error("Error in fetchCryptoDetail:", error);
