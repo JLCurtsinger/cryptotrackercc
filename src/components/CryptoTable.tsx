@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCryptoData, type CryptoData } from "@/services/api";
+import { fetchCryptoData } from "@/services/api";
 import { Skeleton } from "./ui/skeleton";
 import Image from "./ui/image";
 
@@ -48,7 +48,7 @@ export const CryptoTable = () => {
                 <TableCell className="font-medium">{crypto.rank}</TableCell>
                 <TableCell className="flex items-center gap-2">
                   <Image
-                    src={crypto.logoUrl}
+                    src={crypto.logo}
                     alt={`${crypto.name} logo`}
                     className="h-5 w-5 object-contain"
                     fallback="/placeholder.svg"
