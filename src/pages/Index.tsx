@@ -1,4 +1,5 @@
 import { About } from "@/components/About";
+import { BackToTop } from "@/components/BackToTop";
 import { BestBet } from "@/components/BestBet";
 import { CryptoTable } from "@/components/CryptoTable";
 import { Footer } from "@/components/Footer";
@@ -19,6 +20,7 @@ const Index = () => {
         </section>
       </main>
       <Footer />
+      <BackToTop />
     </div>
   );
 };
