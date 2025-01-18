@@ -3,14 +3,13 @@ import { Handler } from "@netlify/functions";
 const COINMARKETCAP_API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
 
 const handler: Handler = async (event) => {
-  // Enable CORS
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Content-Type": "application/json",
   };
 
-  // Handle preflight requests
   if (event.httpMethod === "OPTIONS") {
     console.log("Handling OPTIONS request");
     return {
@@ -22,11 +21,16 @@ const handler: Handler = async (event) => {
 
   try {
     console.log("Starting fetchCryptoData function");
-    console.log("API Key present:", !!process.env.COINMARKETCAP_API_KEY);
+    const apiKey = process.env.COINMARKETCAP_API_KEY;
+    console.log("API Key present:", !!apiKey);
+
+    if (!apiKey) {
+      throw new Error("CoinMarketCap API key is not configured");
+    }
 
     const response = await fetch(COINMARKETCAP_API_URL, {
       headers: {
-        "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
+        "X-CMC_PRO_API_KEY": apiKey,
         "Accept": "application/json",
       },
     });
@@ -40,7 +44,8 @@ const handler: Handler = async (event) => {
     }
 
     const data = await response.json();
-    console.log("Successfully fetched data");
+    console.log("Raw API response structure:", JSON.stringify(Object.keys(data)));
+    console.log("First crypto data sample:", JSON.stringify(data.data?.[0], null, 2));
 
     return {
       statusCode: 200,

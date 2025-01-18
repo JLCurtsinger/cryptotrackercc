@@ -36,7 +36,6 @@ const setCachedData = (data: CryptoData[]) => {
 };
 
 export const fetchCryptoData = async (): Promise<CryptoData[]> => {
-  // Check cache first
   const cached = getCachedData();
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     console.log("Returning cached data");
@@ -54,26 +53,29 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
     }
 
     const data = await response.json();
-    console.log("Raw API response received");
+    console.log("Raw API response:", data);
 
     if (!data.data || !Array.isArray(data.data)) {
       console.error("Unexpected API response format:", data);
       throw new Error("Invalid API response format");
     }
 
-    const formattedData: CryptoData[] = data.data.map((coin: any) => ({
-      id: coin.id,
-      name: coin.name,
-      symbol: coin.symbol,
-      price: coin.quote.USD.price,
-      marketCap: formatMarketCap(coin.quote.USD.market_cap),
-      volume: formatMarketCap(coin.quote.USD.volume_24h),
-      change: coin.quote.USD.percent_change_24h,
-      rank: coin.cmc_rank,
-      logoUrl: coin.logo || '/placeholder.svg'
-    }));
+    const formattedData: CryptoData[] = data.data.map((coin: any) => {
+      console.log("Processing coin:", coin.symbol, "logo:", coin.logo);
+      return {
+        id: coin.id,
+        name: coin.name,
+        symbol: coin.symbol,
+        price: coin.quote.USD.price,
+        marketCap: formatMarketCap(coin.quote.USD.market_cap),
+        volume: formatMarketCap(coin.quote.USD.volume_24h),
+        change: coin.quote.USD.percent_change_24h,
+        rank: coin.cmc_rank,
+        logoUrl: coin.logo || '/placeholder.svg'
+      };
+    });
 
-    console.log("Data formatted successfully");
+    console.log("Formatted first crypto:", formattedData[0]);
     setCachedData(formattedData);
     return formattedData;
   } catch (error) {
