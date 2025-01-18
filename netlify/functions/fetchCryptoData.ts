@@ -1,6 +1,8 @@
 import { Handler } from "@netlify/functions";
 
-const COINMARKETCAP_API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
+const COINMARKETCAP_BASE_URL = "https://pro-api.coinmarketcap.com/v1";
+const LISTINGS_URL = `${COINMARKETCAP_BASE_URL}/cryptocurrency/listings/latest`;
+const INFO_URL = `${COINMARKETCAP_BASE_URL}/cryptocurrency/info`;
 
 const handler: Handler = async (event) => {
   const headers = {
@@ -28,29 +30,57 @@ const handler: Handler = async (event) => {
       throw new Error("CoinMarketCap API key is not configured");
     }
 
-    const response = await fetch(COINMARKETCAP_API_URL, {
+    // First, fetch the listings data
+    const listingsResponse = await fetch(LISTINGS_URL, {
       headers: {
         "X-CMC_PRO_API_KEY": apiKey,
         "Accept": "application/json",
       },
     });
 
-    console.log("API Response Status:", response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Error Response:", errorText);
-      throw new Error(`API responded with status: ${response.status}`);
+    if (!listingsResponse.ok) {
+      const errorText = await listingsResponse.text();
+      console.error("Listings API Error Response:", errorText);
+      throw new Error(`Listings API responded with status: ${listingsResponse.status}`);
     }
 
-    const data = await response.json();
-    console.log("Raw API response structure:", JSON.stringify(Object.keys(data)));
-    console.log("First crypto data sample:", JSON.stringify(data.data?.[0], null, 2));
+    const listingsData = await listingsResponse.json();
+    console.log("Listings data received for", listingsData.data?.length, "cryptocurrencies");
+
+    // Extract IDs for metadata request
+    const ids = listingsData.data.map((crypto: any) => crypto.id).join(',');
+
+    // Fetch metadata (including logos) for all cryptocurrencies
+    const metadataResponse = await fetch(`${INFO_URL}?id=${ids}`, {
+      headers: {
+        "X-CMC_PRO_API_KEY": apiKey,
+        "Accept": "application/json",
+      },
+    });
+
+    if (!metadataResponse.ok) {
+      const errorText = await metadataResponse.text();
+      console.error("Metadata API Error Response:", errorText);
+      throw new Error(`Metadata API responded with status: ${metadataResponse.status}`);
+    }
+
+    const metadataData = await metadataResponse.json();
+    console.log("Metadata received for", Object.keys(metadataData.data || {}).length, "cryptocurrencies");
+
+    // Combine listings and metadata
+    const enrichedData = {
+      data: listingsData.data.map((crypto: any) => ({
+        ...crypto,
+        logo: metadataData.data[crypto.id]?.logo,
+      })),
+    };
+
+    console.log("Sample enriched crypto data:", JSON.stringify(enrichedData.data[0], null, 2));
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(data),
+      body: JSON.stringify(enrichedData),
     };
   } catch (error) {
     console.error("Error in fetchCryptoData:", error);
