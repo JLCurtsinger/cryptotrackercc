@@ -38,17 +38,28 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
   // Check cache first
   const cached = getCachedData();
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log("Returning cached data");
     return cached.data;
   }
 
   try {
+    console.log("Fetching fresh data from API");
     const response = await fetch("/api/fetchCryptoData");
-
+    
     if (!response.ok) {
-      throw new Error("Failed to fetch data");
+      const errorText = await response.text();
+      console.error("API Error Response:", errorText);
+      throw new Error(`API request failed with status ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("Raw API response received");
+
+    if (!data.data || !Array.isArray(data.data)) {
+      console.error("Unexpected API response format:", data);
+      throw new Error("Invalid API response format");
+    }
+
     const formattedData: CryptoData[] = data.data.map((coin: any) => ({
       id: coin.id,
       name: coin.name,
@@ -60,11 +71,12 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
       rank: coin.cmc_rank,
     }));
 
+    console.log("Data formatted successfully");
     setCachedData(formattedData);
     return formattedData;
   } catch (error) {
     console.error("Error fetching crypto data:", error);
-    toast.error("Failed to fetch cryptocurrency data");
+    toast.error("Failed to fetch cryptocurrency data. Please try again later.");
     throw error;
   }
 };

@@ -12,6 +12,7 @@ const handler: Handler = async (event) => {
 
   // Handle preflight requests
   if (event.httpMethod === "OPTIONS") {
+    console.log("Handling OPTIONS request");
     return {
       statusCode: 200,
       headers,
@@ -20,17 +21,26 @@ const handler: Handler = async (event) => {
   }
 
   try {
+    console.log("Starting fetchCryptoData function");
+    console.log("API Key present:", !!process.env.COINMARKETCAP_API_KEY);
+
     const response = await fetch(COINMARKETCAP_API_URL, {
       headers: {
         "X-CMC_PRO_API_KEY": process.env.COINMARKETCAP_API_KEY || "",
+        "Accept": "application/json",
       },
     });
 
+    console.log("API Response Status:", response.status);
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API Error Response:", errorText);
       throw new Error(`API responded with status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("Successfully fetched data");
 
     return {
       statusCode: 200,
@@ -38,11 +48,14 @@ const handler: Handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Error fetching cryptocurrency data:", error);
+    console.error("Error in fetchCryptoData:", error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: "Failed to fetch cryptocurrency data" }),
+      body: JSON.stringify({ 
+        error: "Failed to fetch cryptocurrency data",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }),
     };
   }
 };
