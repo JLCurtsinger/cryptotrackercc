@@ -1,8 +1,9 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Bitcoin, TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCryptoData, type CryptoData } from "@/services/api";
 import { Skeleton } from "./ui/skeleton";
+import Image from "./ui/image";
 
 export const CryptoTable = () => {
   const { data: cryptoData, isLoading, isError } = useQuery({
@@ -46,7 +47,12 @@ export const CryptoTable = () => {
               <TableRow key={crypto.rank} className="table-row-hover cursor-pointer">
                 <TableCell className="font-medium">{crypto.rank}</TableCell>
                 <TableCell className="flex items-center gap-2">
-                  <Bitcoin className="h-5 w-5 text-yellow-500" />
+                  <Image
+                    src={crypto.logoUrl}
+                    alt={`${crypto.name} logo`}
+                    className="h-5 w-5 object-contain"
+                    fallback="/placeholder.svg"
+                  />
                   <span className="font-medium">{crypto.name}</span>
                   <span className="text-muted-foreground">{crypto.symbol}</span>
                 </TableCell>

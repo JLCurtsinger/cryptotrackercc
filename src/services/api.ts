@@ -12,6 +12,7 @@ export interface CryptoData {
   volume: string;
   change: number;
   rank: number;
+  logoUrl: string;
 }
 
 const formatMarketCap = (marketCap: number): string => {
@@ -69,6 +70,7 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
       volume: formatMarketCap(coin.quote.USD.volume_24h),
       change: coin.quote.USD.percent_change_24h,
       rank: coin.cmc_rank,
+      logoUrl: coin.logo || '/placeholder.svg'
     }));
 
     console.log("Data formatted successfully");
