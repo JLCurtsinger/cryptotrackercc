@@ -84,3 +84,47 @@ export const fetchCryptoData = async (): Promise<CryptoData[]> => {
     throw error;
   }
 };
+
+export interface CryptoDetailData extends CryptoData {
+  circulatingSupply: number;
+  maxSupply: number;
+  website?: string;
+  whitepaper?: string;
+  github?: string;
+  twitter?: string;
+}
+
+export interface ChartDataPoint {
+  timestamp: number;
+  price: number;
+}
+
+export const fetchCryptoDetail = async (symbol: string): Promise<CryptoDetailData> => {
+  try {
+    const response = await fetch(`/api/fetchCryptoDetail?symbol=${symbol}`);
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching crypto detail:", error);
+    toast.error("Failed to fetch cryptocurrency details");
+    throw error;
+  }
+};
+
+export const fetchCryptoHistory = async (symbol: string): Promise<ChartDataPoint[]> => {
+  try {
+    const response = await fetch(`/api/fetchCryptoHistory?symbol=${symbol}`);
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching crypto history:", error);
+    toast.error("Failed to fetch price history");
+    throw error;
+  }
+};
